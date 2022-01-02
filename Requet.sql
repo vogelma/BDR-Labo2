@@ -56,5 +56,35 @@ WHERE Chambre_Equipement.nomEquipement = 'Baignoire' AND quantité > 1
  GROUP BY Client.id, Hôtel.id, Réservation.idChambre, Réservation.numéroChambre 
  HAVING COUNT(dateArrivée) > 1
  
-  
+ 
+ /*Requête 7*/
+ /*membre Kurz Alpinhotel sans réservation*/
+ SELECT Client.id, Client.nom, prénom FROM Client
+INNER JOIN Membre ON Membre.idclient = Client.id
+INNER JOIN Hôtel ON Hôtel.id = Membre.idhôtel
+WHERE Hôtel.nom = 'Kurz Alpinhotel'
+EXCEPT
+SELECT DISTINCT Client.id, Client.nom, prénom FROM Client
+INNER JOIN Réservation ON Réservation.idclient = Client.id
+INNER JOIN Hôtel ON Hôtel.id = Réservation.idChambre
+WHERE Hôtel.nom = 'Kurz Alpinhotel'
+
+/*Requête 8*/
+/*ville décroissant capacité d'accueil*/
+SELECT Ville.id, Ville.nom, SUM(nbPlaces * quantité) AS place FROM Ville
+INNER JOIN Hôtel ON Hôtel.idville = Ville.id
+INNER JOIN Chambre ON Chambre.idhôtel = Hôtel.id
+INNER JOIN Chambre_Equipement ON Chambre_Equipement.idchambre = Chambre.idhôtel
+AND Chambre_Equipement.numérochambre = Chambre.numéro 
+INNER JOIN Lit ON Lit.nomequipement = Chambre_Equipement.nomEquipement
+GROUP BY Ville.id
+ORDER BY place DESC
+
+/*Requête 9*/
+/*ville avec le plus de réservations*/
+ SELECT Ville.id, Ville.nom, COUNT(Réservation.idClient) FROM Ville
+INNER JOIN Hôtel ON Hôtel.idville = Ville.id
+INNER JOIN Chambre ON Chambre.idhôtel = Hôtel.id
+INNER JOIN Réservation ON Réservation.idchambre = Hôtel.id AND Réservation.numérochambre = Chambre.numéro
+GROUP BY Ville.id
   
