@@ -9,10 +9,11 @@ SELECT Hôtel.nom, Ville.nom FROM Hôtel INNER JOIN Ville ON Ville.id = Hôtel.i
 
 /*Requête 1*/
 /*Client avec reservation où hôtel = ville*/
- SELECT DISTINCT Client.id, Client.nom, prénom FROM Client
- INNER JOIN Membre ON Client.id = Membre.idClient
- INNER JOIN Hôtel ON Membre.idHôtel = Hôtel.id
- WHERE Hôtel.idVille = Client.idVille
+SELECT DISTINCT Client.id, Client.nom, Client.prénom
+FROM Client
+	INNER JOIN Réservation ON Réservation.idClient = Client.id
+	INNER JOIN Hôtel ON Hôtel.id = Réservation.idChambre
+WHERE Client.idVille = Hôtel.idVille;
  
  /*Requête 2*/
  /*prix min. prix.max pour nuit interlaken*/
@@ -67,7 +68,8 @@ EXCEPT
 SELECT DISTINCT Client.id, Client.nom, prénom FROM Client
 INNER JOIN Réservation ON Réservation.idclient = Client.id
 INNER JOIN Hôtel ON Hôtel.id = Réservation.idChambre
-WHERE Hôtel.nom = 'Kurz Alpinhotel'
+INNER JOIN Réservation ON Réservation.idclient = Client.id AND Réservation.idChambre = Hôtel.id 
+WHERE Hôtel.nom = 'Kurz Alpinhotel' AND Réservation.dateRéservation >= Membre.depuis
 
 /*Requête 8*/
 /*ville décroissant capacité d'accueil*/
@@ -87,4 +89,23 @@ INNER JOIN Hôtel ON Hôtel.idville = Ville.id
 INNER JOIN Chambre ON Chambre.idhôtel = Hôtel.id
 INNER JOIN Réservation ON Réservation.idchambre = Hôtel.id AND Réservation.numérochambre = Chambre.numéro
 GROUP BY Ville.id
-  
+
+/*Requête 10*/
+/* Les chambres réservées pour la nuit du 24 décembre (de cette année)*/
+ SELECT Hôtel.nom, Chambre.numéro FROM hôtel
+INNER JOIN Chambre ON Chambre.idHôtel = Hôtel.id 
+INNER JOIN Réservation ON Réservation.idChambre = Chambre.idHôtel AND Réservation.numéroChambre = Chambre.numéro 
+WHERE dateArrivée = '24.12.2021'
+
+
+/*Requête 11*/
+/*Les réservations faites dans des chambres qui ont un nombre de lits supérieur au nombre 
+de personnes de la réservation*/
+SELECT Client.id, Client.nom, Client.prénom, Hôtel.nom, Réservation.numérochambre, dateArrivée, dateRéservation, nbNuits, nbPersonnes
+FROM Client
+INNER JOIN Réservation ON réservation.idclient = Client.id 
+INNER JOIN hôtel ON Hôtel.id = Réservation.idchambre 
+INNER JOIN Chambre_Equipement ON Chambre_Equipement.idchambre = Réservation.idchambre
+AND Chambre_Equipement.numérochambre = Réservation.numérochambre
+INNER JOIN Lit ON Lit.nomequipement = Chambre_Equipement.nomEquipement WHERE nbPlaces * quantité > nbPersonnes
+
