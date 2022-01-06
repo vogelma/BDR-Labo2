@@ -85,10 +85,10 @@ FROM ville
 	INNER JOIN Réservation ON Réservation.idChambre = Hôtel.id
 GROUP BY Ville.nom
 HAVING COUNT(*) >= ALL (SELECT COUNT(*)
-									FROM ville
-										INNER JOIN Hôtel ON Hôtel.idVille = ville.id
-										INNER JOIN Réservation ON Réservation.idChambre = Hôtel.id
-										GROUP BY Ville.nom)
+				FROM ville
+					INNER JOIN Hôtel ON Hôtel.idVille = ville.id
+					INNER JOIN Réservation ON Réservation.idChambre = Hôtel.id
+					GROUP BY Ville.nom)
 
 
 10:
@@ -120,9 +120,9 @@ FROM Hôtel
 	INNER JOIN Chambre ON Chambre.idHôtel = Hôtel.id
 GROUP BY Hôtel.id
 HAVING COUNT(*) > (SELECT COUNT(*)
-						FROM Chambre
-							INNER JOIN Chambre_Equipement ON Chambre_Equipement.numéroChambre = Chambre.numéro AND Chambre_Equipement.idChambre = Chambre.idHôtel
-						WHERE Chambre_Equipement.nomEquipement = 'TV' AND Chambre.idHôtel = Hôtel.id)
+			FROM Chambre
+				INNER JOIN Chambre_Equipement ON Chambre_Equipement.numéroChambre = Chambre.numéro AND Chambre_Equipement.idChambre = Chambre.idHôtel
+			WHERE Chambre_Equipement.nomEquipement = 'TV' AND Chambre.idHôtel = Hôtel.id)
 
 
 13:
