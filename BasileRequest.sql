@@ -41,12 +41,12 @@ ORDER BY COUNT(DISTINCT Chambre.prixParNuit) DESC
 LIMIT 1
 
 6:
-//Plus simple
 
-SELECT Client.id, Client.nom, Client.prénom
+SELECT Client.id, Client.nom, prénom, Hôtel.nom AS nomHôtel, Réservation.numéroChambre 
 FROM Client
 	INNER JOIN Réservation ON Réservation.idClient = Client.id
-GROUP BY Client.id, idChambre, numéroChambre
+	INNER JOIN Hôtel ON Hôtel.id = Réservation.idChambre 
+GROUP BY Client.id, Hôtel.id, Réservation.idChambre, Réservation.numéroChambre 
 HAVING COUNT(*) > 1
 
 7:
@@ -96,7 +96,7 @@ HAVING COUNT(*) >= ALL (SELECT COUNT(*)
 SELECT Hôtel.nom, Chambre.numéro
 FROM chambre
 	INNER JOIN Hôtel ON Hôtel.id = Chambre.idhôtel
-	INNER JOIN Réservation ON Réservation.idChambre = Chambre.idHôtel
+	INNER JOIN Réservation ON Réservation.idChambre = Chambre.idHôtel AND Réservation.numéroChambre = Chambre.numéro
 WHERE Réservation.dateArrivée = '2021-12-24'
 
 11:
@@ -133,7 +133,7 @@ FROM Chambre
 	INNER JOIN Ville ON Ville.id = Hôtel.id
 	INNER JOIN Chambre_Equipement ON Chambre_Equipement.idChambre = Chambre.idHôtel AND Chambre_Equipement.numéroChambre = Chambre.numéro
 	INNER JOIN Lit ON Lit.nomEquipement = Chambre_Equipement.nomEquipement
-WHERE Ville.nom = 'Lausanne' AND Lit.nbPlaces > 1
+WHERE Ville.nom = 'Lausanne' AND Lit.nbPlaces = 2
 INTERSECT
 SELECT DISTINCT Hôtel.nom, Chambre.numéro
 FROM Chambre
@@ -152,6 +152,7 @@ FROM Réservation
 	INNER JOIN Chambre ON Chambre.idHôtel = Réservation.idChambre AND Chambre.numéro = Réservation.numéroChambre
 	INNER JOIN Hôtel ON Hôtel.id = chambre.idHôtel
 	LEFT OUTER JOIN Membre ON Membre.idClient = client.id AND Membre.idHôtel = Hôtel.id
+WHERE Hôtel.nom = 'Hôtel Royal'	
 ORDER BY joursDAvance DESC, Client.nom, Client.prénom
 
 15:
