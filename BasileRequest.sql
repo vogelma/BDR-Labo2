@@ -91,7 +91,7 @@ WHERE Réservation.dateArrivée = '2021-12-24' OR
 
 /*11:*/
 SELECT Client.id, Client.nom, Client.prénom, Hôtel.nom AS nomHôtel, Chambre.numéro AS numéroChambre,
-			Réservation.dateArrivée, Réservation.dateRéservation, Réservation.nbNuits, Réservation.nbPersonnes
+			to_char(Réservation.dateArrivée, 'DD.MM.YYYY'), to_char(Réservation.dateRéservation, 'DD.MM.YYYY'), Réservation.nbNuits, Réservation.nbPersonnes
 FROM Réservation
 	INNER JOIN Client ON Client.id = Réservation.idClient
 	INNER JOIN Chambre ON Chambre.idHôtel = Réservation.idChambre AND Chambre.numéro = Réservation.numéroChambre
@@ -131,8 +131,9 @@ WHERE Ville.nom = 'Lausanne' AND Chambre_Equipement.nomEquipement = 'TV';
 
 /*14:*/
 SELECT Client.id, Client.nom, Client.prénom, Hôtel.nom AS nomHôtel, Chambre.numéro AS numéroChambre,
-			Réservation.dateArrivée, Réservation.dateRéservation, Réservation.nbNuits, Réservation.nbPersonnes,
-			(Réservation.dateArrivée - Réservation.dateRéservation) AS joursDAvance, Membre.idClient IS NOT NULL AS estMembre
+	   to_char(Réservation.dateArrivée, 'DD.MM.YYYY'), to_char(Réservation.dateRéservation, 'DD.MM.YYYY'),
+	   Réservation.nbNuits, Réservation.nbPersonnes,
+	   (Réservation.dateArrivée - Réservation.dateRéservation) AS joursDAvance, Membre.idClient IS NOT NULL AS estMembre
 FROM Réservation
 	INNER JOIN Client ON Client.id = Réservation.idClient
 	INNER JOIN Chambre ON Chambre.idHôtel = Réservation.idChambre AND Chambre.numéro = Réservation.numéroChambre
