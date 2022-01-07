@@ -8,20 +8,20 @@ WHERE Client.idVille = Hôtel.idVille
 
 2:
 
-SELECT Min(Chambre.prixParNuit), Max(Chambre.prixParNuit)
+SELECT MIN(Chambre.prixParNuit), MAX(Chambre.prixParNuit)
 FROM Chambre
 	INNER JOIN Hôtel ON Chambre.idHôtel = Hôtel.id
-	INNER JOIN Ville ON Hôtel.idville = Ville.id
-WHERE ville.nom = 'Interlaken'
+	INNER JOIN Ville ON Hôtel.idVille = Ville.id
+WHERE Ville.nom = 'Interlaken'
 
 3:
 
-SELECT AVG(Chambre.prixParNuit) AS prixmoyen, Chambre.étage
+SELECT AVG(Chambre.prixParNuit) AS prixMoyen, Chambre.étage
 FROM Chambre
 	INNER JOIN Hôtel ON chambre.idHôtel = Hôtel.id
 WHERE Hôtel.nom = 'JungFrau Petrus Palace'
 GROUP BY Chambre.étage
-ORDER BY prixmoyen
+ORDER BY prixMoyen
 
 4:
 
@@ -29,10 +29,10 @@ SELECT Hôtel.nom
 FROM Hôtel
 	INNER JOIN Chambre ON Chambre.idHôtel = Hôtel.id
 	INNER JOIN Chambre_Equipement ON Chambre.idHôtel = Chambre_Equipement.idChambre AND Chambre.numéro = Chambre_Equipement.numéroChambre
-WHERE Chambre_Equipement.nomequipement = 'Baignoire' AND Chambre_Equipement.quantité > 1
+WHERE Chambre_Equipement.nomEquipement = 'Baignoire' AND Chambre_Equipement.quantité > 1
 
 5:
-//différent au niveau de ce qui est sélectionné
+
 SELECT Hôtel.nom
 FROM Hôtel
 	INNER JOIN Chambre ON Chambre.idHôtel = Hôtel.id
@@ -46,11 +46,10 @@ SELECT Client.id, Client.nom, prénom, Hôtel.nom AS nomHôtel, Réservation.num
 FROM Client
 	INNER JOIN Réservation ON Réservation.idClient = Client.id
 	INNER JOIN Hôtel ON Hôtel.id = Réservation.idChambre 
-GROUP BY Client.id, Hôtel.id, Réservation.idChambre, Réservation.numéroChambre 
+GROUP BY Client.id, Hôtel.id, Réservation.numéroChambre 
 HAVING COUNT(*) > 1
 
 7:
-//2eme select plus simple
 
 SELECT Client.id, Client.nom, Client.prénom
 FROM Client
@@ -66,21 +65,19 @@ FROM client
 WHERE Hôtel.nom = 'Kurz Alpinhotel'  AND Réservation.dateRéservation >= Membre.depuis
 
 8:
-//correction des choses à afficher
 
-SELECT ville.nom
-FROM ville
+SELECT Ville.nom
+FROM Ville
 	INNER JOIN Hôtel ON Hôtel.idVille = Ville.id
-	INNER JOIN Chambre ON Chambre.idHôtel = Hôtel.id
-	INNER JOIN Chambre_Equipement ON Chambre_Equipement.numéroChambre = Chambre.numéro AND Chambre_Equipement.idChambre = Chambre.idhôtel
-	INNER JOIN Lit ON Lit.nomEquipement = Chambre_Equipement.nomequipement
-GROUP BY ville.nom
+	INNER JOIN Chambre_Equipement ON Chambre_Equipement.idChambre = Hôtel.id
+	INNER JOIN Lit ON Lit.nomEquipement = Chambre_Equipement.nomEquipement
+GROUP BY Ville.nom
 ORDER BY SUM(Lit.nbPlaces * Chambre_Equipement.quantité) DESC
 
 9:
 
 SELECT Ville.nom
-FROM ville
+FROM Ville
 	INNER JOIN Hôtel ON Hôtel.idVille = ville.id
 	INNER JOIN Réservation ON Réservation.idChambre = Hôtel.id
 GROUP BY Ville.nom
@@ -97,7 +94,9 @@ SELECT Hôtel.nom, Chambre.numéro
 FROM chambre
 	INNER JOIN Hôtel ON Hôtel.id = Chambre.idhôtel
 	INNER JOIN Réservation ON Réservation.idChambre = Chambre.idHôtel AND Réservation.numéroChambre = Chambre.numéro
-WHERE Réservation.dateArrivée = '2021-12-24'
+WHERE Réservation.dateArrivée = '2021-12-24' OR
+	('2021-12-24' > Réservation.dateRéservation AND
+	 '2021-12-24' < Réservation.dateRéservation + Réservation.nbNuits)
 
 11:
 
@@ -148,7 +147,7 @@ SELECT Client.id, Client.nom, Client.prénom, Hôtel.nom AS nomHôtel, Chambre.n
 			Réservation.dateArrivée, Réservation.dateRéservation, Réservation.nbNuits, Réservation.nbPersonnes,
 			(Réservation.dateArrivée - Réservation.dateRéservation) AS joursDAvance, Membre.idClient IS NOT NULL AS estMembre
 FROM Réservation
-	INNER JOIN Client ON Client.id = Réservation.idclient
+	INNER JOIN Client ON Client.id = Réservation.idClient
 	INNER JOIN Chambre ON Chambre.idHôtel = Réservation.idChambre AND Chambre.numéro = Réservation.numéroChambre
 	INNER JOIN Hôtel ON Hôtel.id = chambre.idHôtel
 	LEFT OUTER JOIN Membre ON Membre.idClient = client.id AND Membre.idHôtel = Hôtel.id
@@ -156,7 +155,7 @@ WHERE Hôtel.nom = 'Hôtel Royal'
 ORDER BY joursDAvance DESC, Client.nom, Client.prénom
 
 15:
-SELECT SUM(nbNuits * prixParNuit) AS prixTotal
+SELECT SUM(Réservation.nbNuits * Chambre.prixParNuit) AS prixTotal
 FROM Réservation
 	INNER JOIN Chambre ON Chambre.idHôtel = Réservation.idChambre AND Chambre.numéro = Réservation.numéroChambre
 	INNER JOIN Hôtel ON Hôtel.id = Chambre.idHôtel
