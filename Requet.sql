@@ -106,7 +106,7 @@ FROM Client
 	INNER JOIN Membre ON Membre.idClient = Client.id
 	INNER JOIN Hôtel ON Hôtel.id = Membre.idHôtel
 	LEFT JOIN Réservation ON Réservation.idClient = Client.id AND Réservation.idChambre = Hôtel.id
-WHERE Hôtel.nom = 'Kurz Alpinhotel'
+WHERE Hôtel.nom = 'Kurz Alpinhotel';
 
 /*test : Ajout d'un membre ayant une réservation à l'hôtel avant de s'y être inscrit*/
 INSERT INTO Client VALUES (11, 1, 'Fernandez', 'Loic');
@@ -120,6 +120,115 @@ DELETE FROM Client WHERE id = 11;
 
 /*Requête 8*/
 /*Ville décroissant capacité d'accueil*/
+SELECT Ville.nom, SUM(Chambre_Equipement.quantité) AS capacité
+FROM Chambre_Equipement
+	INNER JOIN Hôtel ON Hôtel.id = Chambre_Equipement.idChambre
+	INNER JOIN Ville ON Ville.id = Hôtel.idVille
+WHERE Chambre_Equipement.nomEquipement LIKE 'Lit%'
+GROUP BY Ville.nom
+ORDER BY capacité DESC;
+
 
 /*Requête 9*/
 /*Ville avec le plus de réservations*/
+SELECT Ville.nom, SUM(Hôtel.id) AS nbrRéservations
+FROM Réservation
+	INNER JOIN Hôtel ON Hôtel.id = Réservation.idChambre
+	INNER JOIN Ville ON Ville.id = Hôtel.idVille
+GROUP BY Ville.nom
+ORDER BY nbrRéservations DESC;
+
+
+/*Requête 10*/
+/*Chambres réservées pour le 24 décembre de l'année (2021)*/
+SELECT DISTINCT Hôtel.nom, Chambre.numéro/*, Réservation.dateRéservation, Réservation.nbNuits*/
+FROM Chambre
+	INNER JOIN Hôtel ON Hôtel.id = Chambre.idHôtel
+	INNER JOIN Réservation ON Réservation.idChambre = Chambre.idhôtel 
+			   AND Réservation.numéroChambre = Chambre.numéro
+WHERE Réservation.dateRéservation = '2021-12-24' OR
+	('2021-12-24' > Réservation.dateRéservation AND
+	 '2021-12-24' < Réservation.dateRéservation + Réservation.nbNuits);
+
+/*test : Ajout d'un membre avec des réservations autour de la nuit du 24 décembre 2021*/
+INSERT INTO Client VALUES (11, 1, 'Fernandez', 'Loic');
+INSERT INTO Réservation (idClient, idChambre, numéroChambre, dateArrivée, dateRéservation, nbNuits, nbPersonnes) VALUES (11, 4, 17, '2021-12-24', '2021-12-24', 2, 1);
+INSERT INTO Réservation (idClient, idChambre, numéroChambre, dateArrivée, dateRéservation, nbNuits, nbPersonnes) VALUES (11, 4, 17, '2021-12-22', '2021-12-22', 2, 1);
+INSERT INTO Réservation (idClient, idChambre, numéroChambre, dateArrivée, dateRéservation, nbNuits, nbPersonnes) VALUES (11, 4, 17, '2021-12-21', '2021-12-21', 4, 1);
+INSERT INTO Réservation (idClient, idChambre, numéroChambre, dateArrivée, dateRéservation, nbNuits, nbPersonnes) VALUES (11, 4, 17, '2021-12-23', '2021-12-23', 3, 1);
+DELETE FROM Réservation WHERE idclient = 11;
+DELETE FROM Client WHERE id = 11;
+
+
+/*Requête 11*/
+/*Les réservations faites dans des chambres qui ont un nombre de lits supérieur au nombre de personnes de la réservation.*/
+SELECT Client.id, Client.nom, Client.prénom, Hôtel.nom AS hôtel, Chambre.numéro AS "no. chambre", Réservation.dateArrivée,
+	   Réservation.dateRéservation, Réservation.nbNuits, Réservation.nbPersonnes/*, Chambre_Equipement.nomEquipement, Chambre_Equipement.quantité*/
+FROM Réservation
+	INNER JOIN Client ON Client.id = Réservation.idClient
+	INNER JOIN Chambre ON Chambre.idHôtel = Réservation.idChambre AND Chambre.numéro = Réservation.numéroChambre
+	INNER JOIN Hôtel ON Hôtel.id = Chambre.idhôtel
+	INNER JOIN Chambre_Equipement ON Chambre_Equipement.idChambre = Chambre.idHôtel AND Chambre_Equipement.numéroChambre = Chambre.numéro
+WHERE Chambre_Equipement.nomEquipement LIKE 'Lit%' AND Chambre_Equipement.quantité > Réservation.nbPersonnes;
+
+/*Requête 12*/
+/*Les hôtels dont pas toutes les chambres sont équipées d'une TV. N'utiliser ni EXCEPT, ni INTERSECT.*/
+WITH ChambresParHôtel AS (
+	SELECT idHôtel, COUNT(numéro) AS nbrChambres
+	FROM Chambre
+	GROUP BY idHôtel
+),
+/*Ici on considère comme dans le modèle EA, qu'une chambre a forcément un équipement*/
+/*On considère aussi que l'équipement TV n'apparaît qu'une seule fois dans la table Equipement*/
+ChambresParHôtelAvecTV AS (
+	SELECT idChambre AS idHôtel, COUNT(numéroChambre) AS nbrChambres
+	FROM Chambre_Equipement
+	WHERE nomEquipement LIKE 'TV'
+	GROUP BY idChambre
+)
+SELECT Hôtel.nom
+FROM Hôtel
+	INNER JOIN ChambresParHôtel ON ChambresParHôtel.idHôtel = Hôtel.id
+	INNER JOIN ChambresParHôtelAvecTV ON ChambresParHôtelAvecTV.idHôtel = Hôtel.id
+WHERE ChambresParHôtel.nbrChambres != ChambresParHôtelAvecTV.nbrChambres;
+
+/*Requête 13*/
+/*Les chambres à Lausanne ayant au moins une TV et un lit à 2 places*/
+/*Réecriture des équipements en 1 string*/
+WITH ChambreAvecEquipements AS (
+	SELECT Hôtel.nom, Chambre.numéro, STRING_AGG(Chambre_Equipement.nomEquipement, ' ') AS equipements
+	FROM Chambre
+		INNER JOIN Hôtel ON Hôtel.id = Chambre.idHôtel
+		INNER JOIN Ville ON Ville.id = Hôtel.id
+		INNER JOIN Chambre_Equipement ON Chambre_Equipement.idChambre = Chambre.idHôtel AND Chambre_Equipement.numéroChambre = Chambre.numéro
+	GROUP BY Hôtel.nom, Chambre.numéro
+),
+/*Récupération des chambres ayant un lit à 2 places et une TV*/
+ChambreAyantAuMoinsUneTVEtUnLitàDeuxPlaces AS (
+	SELECT nom, numéro, COUNT(numéro)
+	FROM ChambreAvecEquipements
+	WHERE equipements SIMILAR TO '%(King|Queen)%' AND equipements LIKE '%TV%'
+	GROUP BY nom, numéro
+)
+SELECT nom, numéro
+FROM ChambreAyantAuMoinsUneTVEtUnLitàDeuxPlaces;
+
+
+/*Requête 14*/
+/*Pour l'hôtel "Hôtel Royal", lister toutes les réservations en indiquant de combien de jours
+elles ont été faites à l'avance (avant la date d'arrivée) ainsi que si la réservation a été faite
+en tant que membre de l'hôtel. Trier les résultats par ordre des réservations (en 1er celles
+faites le plus à l’avance), puis par clients (ordre croissant du nom puis du prénom).*/
+SELECT datearrivée - dateréservation AS joursEnAvance, CAST(Membre.idClient AS BOOLEAN) AS "est membre",
+	   Client.id, Client.nom, Client.prénom, Hôtel.nom AS Hôtel, Chambre.numéro AS "no. chambre",
+	   Réservation.dateArrivée, Réservation.dateRéservation, Réservation.nbNuits, Réservation.nbPersonnes
+FROM Réservation
+	INNER JOIN Client ON Client.id = Réservation.idClient
+	INNER JOIN Chambre ON Chambre.idHôtel = Réservation.idChambre AND Chambre.numéro = Réservation.numéroChambre
+	INNER JOIN Hôtel ON Hôtel.id = Chambre.idHôtel
+	LEFT JOIN Membre ON Membre.idClient = Client.id AND Membre.idhôtel = Hôtel.id
+WHERE Hôtel.nom = 'Hôtel Royal'
+ORDER BY joursEnAvance, Client.nom, Client.prénom;
+
+
+
