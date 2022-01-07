@@ -80,13 +80,13 @@ HAVING COUNT(*) >= ALL (SELECT COUNT(*)
 
 
 /*10:*/
-SELECT Hôtel.nom, Chambre.numéro
+SELECT DISTINCT Hôtel.nom, Chambre.numéro
 FROM Chambre
 	INNER JOIN Hôtel ON Hôtel.id = Chambre.idhôtel
 	INNER JOIN Réservation ON Réservation.idChambre = Chambre.idHôtel AND Réservation.numéroChambre = Chambre.numéro
 WHERE Réservation.dateArrivée = '2021-12-24' OR
-	('2021-12-24' > Réservation.dateRéservation AND
-	 '2021-12-24' < Réservation.dateRéservation + Réservation.nbNuits);
+	('2021-12-24' > Réservation.dateArrivée AND
+	 '2021-12-24' < Réservation.dateArrivée + Réservation.nbNuits);
 
 
 /*11:*/
