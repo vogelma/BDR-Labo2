@@ -134,7 +134,8 @@ WHERE Ville.nom = 'Lausanne' AND Chambre_Equipement.nomEquipement = 'TV';
 SELECT Client.id, Client.nom, Client.prénom, Hôtel.nom AS nomHôtel, Chambre.numéro AS numéroChambre,
 	   to_char(Réservation.dateArrivée, 'DD.MM.YYYY') AS dateArrivée, to_char(Réservation.dateRéservation, 'DD.MM.YYYY') AS dateRéservation,
 	   Réservation.nbNuits, Réservation.nbPersonnes,
-	   (Réservation.dateArrivée - Réservation.dateRéservation) AS joursDAvance, Membre.idClient IS NOT NULL AS estMembre
+	   (Réservation.dateArrivée - Réservation.dateRéservation) AS joursDAvance,
+	   (Membre.idClient IS NOT NULL AND Réservation.dateRéservation >= Membre.depuis) AS réservationMembre
 FROM Réservation
 	INNER JOIN Client ON Client.id = Réservation.idClient
 	INNER JOIN Chambre ON Chambre.idHôtel = Réservation.idChambre AND Chambre.numéro = Réservation.numéroChambre
