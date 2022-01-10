@@ -84,9 +84,9 @@ SELECT DISTINCT Hôtel.nom AS nomHôtel, Chambre.numéro AS numéroChambre
 FROM Chambre
 	INNER JOIN Hôtel ON Hôtel.id = Chambre.idhôtel
 	INNER JOIN Réservation ON Réservation.idChambre = Chambre.idHôtel AND Réservation.numéroChambre = Chambre.numéro
-WHERE Réservation.dateArrivée = '2021-12-24' OR
-	('2021-12-24' > Réservation.dateArrivée AND
-	 '2021-12-24' < Réservation.dateArrivée + Réservation.nbNuits);
+WHERE Réservation.dateArrivée = MAKE_DATE(EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER, 12, 24) OR
+	(MAKE_DATE(EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER, 12, 24) > Réservation.dateArrivée AND
+	 MAKE_DATE(EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER, 12, 24) < Réservation.dateArrivée + Réservation.nbNuits);
 
 
 /*11:*/
@@ -99,7 +99,9 @@ FROM Réservation
 	INNER JOIN Hôtel ON Hôtel.id = Chambre.idHôtel
 	INNER JOIN Chambre_Equipement ON Chambre_Equipement.idChambre = Chambre.idHôtel AND Chambre_Equipement.numéroChambre = Chambre.numéro
 	INNER JOIN Lit ON Lit.nomEquipement = Chambre_Equipement.nomEquipement
-WHERE Chambre_Equipement.quantité > Réservation.nbPersonnes;
+GROUP BY Client.id, Client.nom, Client.prénom, Hôtel.nom, Chambre.numéro,
+		Réservation.dateArrivée, Réservation.dateRéservation, Réservation.nbNuits, Réservation.nbPersonnes
+HAVING SUM(Chambre_Equipement.quantité) > Réservation.nbPersonnes;
 
 
 /*12:*/
