@@ -84,9 +84,7 @@ SELECT DISTINCT Hôtel.nom AS nomHôtel, Chambre.numéro AS numéroChambre
 FROM Chambre
 	INNER JOIN Hôtel ON Hôtel.id = Chambre.idhôtel
 	INNER JOIN Réservation ON Réservation.idChambre = Chambre.idHôtel AND Réservation.numéroChambre = Chambre.numéro
-WHERE Réservation.dateArrivée = MAKE_DATE(EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER, 12, 24) OR
-	(MAKE_DATE(EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER, 12, 24) > Réservation.dateArrivée AND
-	 MAKE_DATE(EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER, 12, 24) < Réservation.dateArrivée + Réservation.nbNuits);
+WHERE MAKE_DATE(EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER, 12, 24) BETWEEN Réservation.dateArrivée AND Réservation.dateArrivée + Réservation.nbNuits;
 
 
 /*11:*/
